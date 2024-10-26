@@ -1,0 +1,41 @@
+<HomePage>
+    FloatLayout:
+        canvas:
+            Rectangle:
+                size: self.size
+                pos: self.pos
+                source: "icones/bg1.png"
+        Label:
+            canvas.before:
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+                    source: "icones/botao_fino.png"
+            pos_hint: {"right": 0.85,"top": 0.95}
+            size_hint: 0.7, 0.2
+            text: "Valor Total: R$1"
+            bold: True
+            id: label_total_vendas
+            markup: True
+        ScrollView:
+            pos_hint: {"right": 1, "top": 0.75}
+            size_hint: 1, 0.63
+        GridLayout:
+            rows: 1
+            canvas:
+                Color:
+                    rgb: utils.get_color_from_hex("#006D7E")
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            pos_hint: {"right": 1, "top": 0.12}
+            size_hint: 1, 0.12
+            ImageButton:
+                source: "icones/add.png"
+                on_release: print("Adicionar Venda")
+            ImageButton:
+                source: "icones/salesman.png"
+                on_release: print("Lista de Vendedores")
+            ImageButton:
+                source: "icones/settings.png"
+                on_release: app.mudar_tela("ajustespage")
