@@ -4,7 +4,8 @@ from telas import *
 from botoes import *
 import requests
 from bannervenda import BannerVenda
-
+import os
+from functools import partial
 
 GUI = Builder.load_file('main.kv')
 class MainApp(App):
@@ -14,6 +15,21 @@ class MainApp(App):
         return GUI
 
     def on_start(self):
+
+        # Carregar fotos de perfil
+        arquivos = os.listdir("icones/fotos_perfil")
+        pagina_foto_perfil = self.root.ids["fotoperfilpage"]
+        lista_foto = pagina_foto_perfil.ids["lista_fotos_perfil"]
+        for foto in arquivos:
+            imagem = ImageButton(source="icones/fotos_perfil/" + foto, on_release=partial(self.mudar_foto_perfil, foto))
+            lista_foto.add_widget(imagem)
+
+        self.carregar_infos_usuario()
+
+
+
+
+    def carregar_infos_usuario(self):
         link = f"https://aplicativovendashash-be58f-default-rtdb.firebaseio.com/{self.id_usuario}.json"
         requisicao = requests.get(link).json()
 
@@ -40,6 +56,14 @@ class MainApp(App):
         gerenciador_telas = self.root.ids["screen_manager"]
         gerenciador_telas.current = id_tela
 
+    def mudar_foto_perfil(self, foto, *args):
+        print(foto)
+        foto_perfil = self.root.ids['foto_perfil']
+        foto_perfil.source = f"icones/fotos_perfil/{foto}"
 
+        info = f'{{"avatar": "{foto}"}}'
+        requisicao = requests.patch(f"https://aplicativovendashash-be58f-default-rtdb.firebaseio.com/{self.id_usuario}.json",
+                                    data=str(info))
+        self.mudar_tela('ajustespage')
 MainApp().run()
 
