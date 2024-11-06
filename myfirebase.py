@@ -24,6 +24,19 @@ class MyFirebase:
 
             with open("refresh.txt", "w") as arquivo:
                 arquivo.write(refresh_token)
+
+            link = f"https://aplicativovendashash-be58f-default-rtdb.firebaseio.com/{local_id}.json"
+
+            info_usuario = """{"avatar": "foto1.png",
+                            "equipe": "",
+                            "total_vendas": "0",
+                            "vendas": ""}"""
+
+            requisicao_usuario = requests.patch(link, data=info_usuario)
+
+            meu_app.carregar_infos_usuario()
+            meu_app.mudar_tela('homepage')
+
         else:
             mensagem_erro = requisicao_dic["error"]["message"]
             meu_app = App.get_running_app()
@@ -34,3 +47,18 @@ class MyFirebase:
 
     def fazer_login(self, email, senha):
         pass
+
+    def trocar_token(self, refresh_token):
+
+        link = f"https://securetoken.googleapis.com/v1/token?key={self.API_KEY}"
+
+        info = {"grant_type": "refresh_token",
+                "refresh_token": refresh_token,}
+
+        requisicao = requests.post(link, data=info)
+        requisicao_dic = requisicao.json()
+        if requisicao.ok:
+            local_id = requisicao_dic['user_id']
+            id_token = requisicao_dic['id_token']
+            return local_id, id_token
+

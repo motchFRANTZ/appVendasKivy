@@ -10,7 +10,6 @@ from myfirebase import MyFirebase
 
 GUI = Builder.load_file('main.kv')
 class MainApp(App):
-    id_usuario = 1
 
     def build(self):
         self.firebase = MyFirebase()
@@ -32,27 +31,39 @@ class MainApp(App):
 
 
     def carregar_infos_usuario(self):
-        link = f"https://aplicativovendashash-be58f-default-rtdb.firebaseio.com/{self.id_usuario}.json"
-        requisicao = requests.get(link).json()
-
-        # preencher foto perfil
-        avatar = requisicao['avatar']
-        foto_perfil = self.root.ids['foto_perfil']
-        foto_perfil.source = f"icones/fotos_perfil/{avatar}"
-
-        # preencher lista de vendas
         try:
-            vendas = requisicao['vendas'][1:]
-            for venda in vendas:
-                banner = BannerVenda(cliente=venda['cliente'], foto_cliente=venda['foto_cliente'],
-                                     produto=venda['produto'], foto_produto=venda['foto_produto'],
-                                     data=venda['data'], preco=venda['preco'], unidade=venda['unidade'],
-                                     quantidade=venda['quantidade'])
-                pagina_homepage = self.root.ids["homepage"]
-                lista_vendas = pagina_homepage.ids["lista_vendas"]
-                lista_vendas.add_widget(banner)
-        except Exception as e:
-            print("Erro ao adicionar banner de venda:", e)  # Exibe o erro real
+            with open("refresh.txt", "r") as arquivo:
+                refresh_token = arquivo.read()
+
+            local_id, id_token = self.firebase.trocar_token(refresh_token)
+            self.local_id = local_id
+            self.id_token = id_token
+
+            link = f"https://aplicativovendashash-be58f-default-rtdb.firebaseio.com/{self.local_id}.json"
+            requisicao = requests.get(link).json()
+
+            # preencher foto perfil
+            avatar = requisicao['avatar']
+            foto_perfil = self.root.ids['foto_perfil']
+            foto_perfil.source = f"icones/fotos_perfil/{avatar}"
+
+            # preencher lista de vendas
+            try:
+                vendas = requisicao['vendas'][1:]
+                for venda in vendas:
+                    banner = BannerVenda(cliente=venda['cliente'], foto_cliente=venda['foto_cliente'],
+                                         produto=venda['produto'], foto_produto=venda['foto_produto'],
+                                         data=venda['data'], preco=venda['preco'], unidade=venda['unidade'],
+                                         quantidade=venda['quantidade'])
+                    pagina_homepage = self.root.ids["homepage"]
+                    lista_vendas = pagina_homepage.ids["lista_vendas"]
+                    lista_vendas.add_widget(banner)
+            except Exception as e:
+                print("Erro ao adicionar banner de venda:", e)  # Exibe o erro real
+            self.mudar_tela('homepage')
+        except:
+            pass
+
 
     def mudar_tela(self, id_tela):
         gerenciador_telas = self.root.ids["screen_manager"]
@@ -64,8 +75,9 @@ class MainApp(App):
         foto_perfil.source = f"icones/fotos_perfil/{foto}"
 
         info = f'{{"avatar": "{foto}"}}'
-        requisicao = requests.patch(f"https://aplicativovendashash-be58f-default-rtdb.firebaseio.com/{self.id_usuario}.json",
+        requisicao = requests.patch(f"https://aplicativovendashash-be58f-default-rtdb.firebaseio.com/{self.local_id}.json",
                                     data=str(info))
         self.mudar_tela('ajustespage')
+
 MainApp().run()
 
